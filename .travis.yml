@@ -40,3 +40,13 @@ deploy:
     acl: private # zip 파일 접근을 private으로
     local_dir: deploy # 여기서 지정한 디렉토리 위치의 파일들만 S3로 전송
     wait-until-deployed: true
+  - provider: codedeploy
+    access_key_id: $AWS_ACCESS_KEY
+    secret_access_key: $AWS_SECRET_KEY
+    bucket: travis-s3-yik # S3 버킷
+    key: spring-boot-webservice.zip
+    bundle_type: zip
+    application: codedeploy-yik # CodeDeploy Application name
+    deployment_group: codedeploy-group-yik
+    region: ap-northeast-2
+    wait-until-deployed: true

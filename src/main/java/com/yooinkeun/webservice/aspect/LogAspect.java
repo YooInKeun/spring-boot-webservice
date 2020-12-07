@@ -1,34 +1,34 @@
 package com.yooinkeun.webservice.aspect;
 
-import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yooinkeun.webservice.service.posts.PostsService;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StopWatch;
 
-@Aspect
+import java.util.Map;
+
 @Component
+@Aspect
 public class LogAspect {
+    Logger logger = LoggerFactory.getLogger(LogAspect.class);
 
-    Logger log = LoggerFactory.getLogger(LogAspect.class);
+    @Around("@annotation(LogExecutionTime)")
+    public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
+        // 수행 시간 로그 찍기
+        StopWatch stopWatch = new StopWatch();
+        stopWatch.start();
 
-    @Before("execution(* com.yooinkeun.webservice.service.posts.*.*Aop(..))")
-    public void onBeforeHandler(JoinPoint joinPoint) {
-        log.info("onBeforeHandler");
-    }
+        // @LogExecutionTime 애노테이션이 붙어있는 타겟 메소드를 실행
+        Object proceed = joinPoint.proceed();
 
-    @After("execution(* com.yooinkeun.webservice.service.posts.*.*Aop(..))")
-    public void onAfterHandler(JoinPoint joinPoint) {
-        log.info("onAfterHandler");
-    }
+        stopWatch.stop();
+        logger.info(stopWatch.prettyPrint());
 
-    @AfterReturning(pointcut = "execution(* com.yooinkeun.webservice.service.posts.*.*Aop(..))", returning = "str")
-    public void onAfterReturningHandler(JoinPoint joinPoint, Object str) {
-        log.info("onAfterReturningHandler");
-    }
-
-    @Pointcut("execution(* com.yooinkeun.webservice.service.posts.*.*Aop(..))")
-    public void onPointcut(JoinPoint joinPoint) {
-        log.info("onPointcut");
+        return proceed;
     }
 }

@@ -17,6 +17,7 @@ public class PostsApiController {
 
     private final PostsService postsService;
 
+    @PreProcessRequestData
     @LogExecutionTime
     @PostMapping("/api/v1/posts")
     public Long save(@RequestBody PostsSaveRequestDto requestDto) {

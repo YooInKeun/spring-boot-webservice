@@ -2,30 +2,47 @@ package com.yooinkeun.webservice.aspect;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 @Component
 @Aspect
 public class PreProcessRequestDataAspect {
 
-    @Before("@annotation(PreProcessRequestData)")
-    public void preProcessRequestData(JoinPoint joinPoint) throws Throwable {
-        // Object 형태 요청으로 들어온 데이터 다루기(요청 데이터에 대한 전처리 할 때 유용하지 않을까)
-        Object[] signatureArgs = joinPoint.getArgs();
-        for (Object signatureArg: signatureArgs) {
+    private static final String PARAMETER_KEY = "parameterKey";
+
+    @Around("@annotation(PreProcessRequestData)")
+    public Object preProcessRequestData(ProceedingJoinPoint pjp) throws Throwable {
+        final List<Object> valueList = getParamterValue(pjp.getArgs());
+        return checkValue(pjp, valueList);
+    }
+
+    private List<Object> getParamterValue(Object[] requestParameters) {
+        List<Object> valueList = new ArrayList<>();
+
+        for (Object requestParameter: requestParameters) {
             ObjectMapper objectMapper = new ObjectMapper();
             try {
-                Map map = objectMapper.convertValue(signatureArg, Map.class);
-                log.info(map.toString());
+                final Map<String, Object> requestParameterMap = objectMapper.convertValue(requestParameter, HashMap.class);
+                valueList = (ArrayList<Object>) requestParameterMap.get(PARAMETER_KEY);
+                break;
             } catch (IllegalArgumentException e) {
-                log.warn(e.getMessage());
+                // 요청 파라미터가 Class 형태가 아니여서 Map으로 변환 못할 때 발생
+            } catch (ClassCastException e) {
+                // 타입 변환 못할 때 발생
             }
         }
+
+        return valueList;
+    }
+
+    private Object checkValue(ProceedingJoinPoint pjp, List<Object> value) throws Throwable {
+        // checkValue
+        return pjp.proceed();
     }
 }
